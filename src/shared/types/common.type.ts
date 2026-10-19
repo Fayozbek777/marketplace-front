@@ -1,3 +1,5 @@
+export type Id = string;
+
 export interface Paginated<T> {
   items: T[];
   total: number;
