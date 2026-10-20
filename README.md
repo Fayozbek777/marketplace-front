@@ -1,76 +1,127 @@
-# React + TypeScript + Vite
+# 📋 Marketplace — доска объявлений
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> 🛒 Fullstack-приложение для размещения и покупки объявлений в стиле OLX  
+> 💼 Демо-проект для портфолио
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 🎨 Frontend
 
-## React Compiler
+| Технология | Назначение |
+|------------|-----------|
+| **React 19** + **TypeScript** | Основа приложения |
+| **Vite** | Молниеносная сборка |
+| **Tailwind CSS v4** | Стилизация |
+| **React Router v7** | Роутинг + lazy loading |
+| **Zustand** | Глобальное состояние (auth, favorites, filters) |
+| **TanStack Query v5** | Запросы и кэш |
+| **React Hook Form** + **Zod** | Формы и валидация |
+| **Axios** | HTTP + JWT interceptors |
+| **Framer Motion** | Анимации |
+| **date-fns** | Работа с датами |
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### ⚙️ Backend
 
-## Expanding the ESLint configuration
+| Технология | Назначение |
+|------------|-----------|
+| **Django 5** + **DRF** | REST API |
+| **SQLAlchemy 2.0** | ORM |
+| **PostgreSQL** | База данных |
+| **JWT** | Access + Refresh токены |
+| **drf-spectacular** | Swagger документация |
+| **Redis** | Rate limiting |
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+---
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## ✨ Ключевые возможности
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 🔐 Аутентификация
+- ✅ Регистрация / вход / выход
+- 🔄 **JWT access** (15 мин) + **refresh** (7 дней) с **ротацией**
+- ⚡ Автоматический refresh через interceptor: `401 → refresh → retry`
+- 🛡️ Private / Public роуты с guards
+- 🚫 Бан на 5 минут после 5 неудачных попыток входа
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### 📢 Объявления
+- 🔍 Каталог с фильтрами: категория, город, цена, сортировка
+- ⌨️ Поиск с **debounce 400мс** + синхронизация с URL (`?q=`)
+- 📄 Пагинация результатов
+- 🖼️ Детальная страница с галереей изображений
+- ✏️ Создание и удаление (только для владельца)
+- 👁️ Счётчик просмотров
+- 🚀 Продвижение объявления (демо-оплата)
 
-```
+### ❤️ Избранное
+- ⚡ Toggle с **оптимистичным UI**
+- 💾 Persist в localStorage
+- 🔴 Бейдж с количеством в Header
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+### 👤 Профиль
+- 👀 Просмотр и редактирование (имя, телефон, город, bio)
+- 📋 Мои объявления
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### 💳 Checkout (демо-оплата)
+- 📦 Тарифы продвижения: Basic / Standard / Premium
+- ✅ Валидация карты: Luhn, срок действия, CVV
+- 🎉 Модалка успеха / отказа
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+---
+
+## 📁 Структура проекта (FSD-подход, упрощённый)
 
 ```
-# marketplace-front
+src/
+├── app/                  # Инициализация приложения
+│   ├── providers/        # QueryProvider, RouterProvider
+│   ├── router/           # Роуты, guards
+│   └── App.tsx
+│
+├── pages/                # Страницы (по одной на роут)
+│   ├── home/
+│   ├── listings/
+│   ├── auth/
+│   ├── favorites/
+│   ├── profile/
+│   ├── checkout/
+│   └── not-found/
+│
+├── features/             # Бизнес-логика по фичам
+│   ├── auth/             # login / register / logout
+│   ├── listings/         # CRUD объявлений
+│   ├── favorites/        # избранное
+│   ├── profile/          # профиль
+│   ├── checkout/         # оплата
+│   ├── search/           # поиск
+│   └── categories/       # справочник категорий
+│
+├── shared/               # Переиспользуемое
+│   ├── api/              # axios + interceptors
+│   ├── ui/               # Button, Input, Modal...
+│   ├── lib/              # cn, formatPrice, storage
+│   ├── hooks/            # useDebounce, useClickOutside
+│   ├── config/           # константы, env
+│   └── types/            # общие типы
+│
+├── layouts/              # RootLayout, AuthLayout + Header/Footer
+├── schemas/              # zod-схемы
+└── styles/               # tailwind
+```
+
+---
+
+## 📌 Особенности реализации
+
+| Фича | Описание |
+|------|----------|
+| ⚡ **Optimistic updates** | Избранное обновляется мгновенно, запрос уходит в фоне |
+| ⌨️ **Debounce** | Поиск и фильтр цены — 400мс |
+| 📦 **Lazy loading** | Страницы подгружаются при переходе |
+| 🔄 **Refresh token rotation** | Каждый refresh выдаёт новый refresh-токен |
+| 🏗️ **Слоистая архитектура** | `api → model → ui` |
+| 🧩 **FSD-подход** | Фичи изолированы и независимы |
+
+---
+
+
+
+
