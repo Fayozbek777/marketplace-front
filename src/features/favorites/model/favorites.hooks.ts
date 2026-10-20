@@ -1,25 +1,37 @@
+import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import * as favoritesApi from "../api/favorites.api";
 import { useFavoritesStore } from "./favorites.store";
+import { useAuthStore } from "@/features/auth/model/auth.store";
 
 export function useFavorites() {
   const setIds = useFavoritesStore((s) => s.setIds);
+  const isAuth = useAuthStore((s) => s.isAuthenticated);
 
-  return useQuery({
+  const query = useQuery({
     queryKey: ["favorites"],
     queryFn: favoritesApi.getFavorites,
-    select: (data) => {
-      setIds(data.map((x) => x.id));
-      return data;
-    },
+    enabled: isAuth,
   });
+
+  // синхронизация ids в store — ВНЕ рендера
+  useEffect(() => {
+    if (query.data) {
+      setIds(query.data.map((x) => x.id));
+    }
+  }, [query.data, setIds]);
+
+  return query;
 }
 
 export function useFavoritesCount() {
+  const isAuth = useAuthStore((s) => s.isAuthenticated);
+
   return useQuery({
     queryKey: ["favorites", "count"],
     queryFn: favoritesApi.getFavoritesCount,
+    enabled: isAuth,
     staleTime: 60 * 1000,
   });
 }

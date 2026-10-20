@@ -8,6 +8,7 @@ import type {
   CreateListingDTO,
   UpdateListingDTO,
 } from "../types/listings.type";
+import { useAuthStore } from "@/features/auth";
 
 // =========================
 // LIST — каталог (с фильтрами)
@@ -38,9 +39,18 @@ export function useListing(id: string | undefined) {
 // MY — мои объявления
 // =========================
 export function useMyListings() {
+  const isAuth = useAuthStore((s) => s.isAuthenticated);
   return useQuery({
     queryKey: ["listings", "my"],
     queryFn: listingsApi.getMyListings,
+    enabled: isAuth,
+    // если бэкенд вернёт {items: [...]} — разворачиваем
+    select: (data: any) => {
+      if (Array.isArray(data)) return data;
+      if (data?.items) return data.items;
+      if (data?.listings) return data.listings;
+      return [];
+    },
   });
 }
 
