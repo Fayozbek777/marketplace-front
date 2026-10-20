@@ -1,69 +1,68 @@
 import { Link } from "react-router-dom";
+import { ExternalLink, Sparkles } from "lucide-react";
+
+const SECTIONS = [
+  {
+    title: "Разделы",
+    links: [
+      { to: "/listings", label: "Объявления" },
+      { to: "/listings/create", label: "Разместить" },
+      { to: "/favorites", label: "Избранное" },
+    ],
+  },
+  {
+    title: "Аккаунт",
+    links: [
+      { to: "/login", label: "Вход" },
+      { to: "/register", label: "Регистрация" },
+      { to: "/profile", label: "Профиль" },
+    ],
+  },
+];
 
 export function Footer() {
   return (
     <footer className="border-t border-gray-200 bg-white mt-12">
-      <div className="max-w-6xl mx-auto px-4 py-8 grid grid-cols-2 md:grid-cols-4 gap-6 text-sm">
-        <div>
-          <div className="font-bold text-brand-600 text-lg mb-2">
+      <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
+        <div className="col-span-2 md:col-span-1">
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 font-bold text-lg text-brand-600 hover:text-brand-700 transition"
+          >
+            <span className="w-8 h-8 rounded-lg bg-brand-600 text-white flex items-center justify-center">
+              <Sparkles className="w-4 h-4" />
+            </span>
             Marketplace
-          </div>
-          <p className="text-gray-500">
+          </Link>
+          <p className="text-gray-500 mt-3 max-w-xs">
             Доска объявлений. Демо-проект для портфолио.
           </p>
         </div>
 
-        <div>
-          <div className="font-semibold mb-2">Разделы</div>
-          <ul className="space-y-1 text-gray-600">
-            <li>
-              <Link to="/listings" className="hover:text-brand-600">
-                Объявления
-              </Link>
-            </li>
-            <li>
-              <Link to="/listings/create" className="hover:text-brand-600">
-                Разместить
-              </Link>
-            </li>
-            <li>
-              <Link to="/favorites" className="hover:text-brand-600">
-                Избранное
-              </Link>
-            </li>
-          </ul>
-        </div>
+        {SECTIONS.map((s) => (
+          <div key={s.title}>
+            <div className="font-semibold text-gray-900 mb-3">{s.title}</div>
+            <ul className="space-y-2 text-gray-600">
+              {s.links.map((l) => (
+                <li key={l.to}>
+                  <Link to={l.to} className="hover:text-brand-600 transition">
+                    {l.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
 
         <div>
-          <div className="font-semibold mb-2">Аккаунт</div>
-          <ul className="space-y-1 text-gray-600">
-            <li>
-              <Link to="/login" className="hover:text-brand-600">
-                Вход
-              </Link>
-            </li>
-            <li>
-              <Link to="/register" className="hover:text-brand-600">
-                Регистрация
-              </Link>
-            </li>
-            <li>
-              <Link to="/profile" className="hover:text-brand-600">
-                Профиль
-              </Link>
-            </li>
-          </ul>
-        </div>
-
-        <div>
-          <div className="font-semibold mb-2">О проекте</div>
-          <ul className="space-y-1 text-gray-600">
+          <div className="font-semibold text-gray-900 mb-3">О проекте</div>
+          <ul className="space-y-2 text-gray-600">
             <li>
               <a
                 href="https://github.com"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-brand-600"
+                className="inline-flex items-center gap-1.5 hover:text-brand-600 transition"
               >
                 GitHub
               </a>
@@ -73,8 +72,9 @@ export function Footer() {
                 href="http://localhost:8000/api/docs"
                 target="_blank"
                 rel="noreferrer"
-                className="hover:text-brand-600"
+                className="inline-flex items-center gap-1.5 hover:text-brand-600 transition"
               >
+                <ExternalLink className="w-3.5 h-3.5" />
                 API Docs
               </a>
             </li>
@@ -82,7 +82,7 @@ export function Footer() {
         </div>
       </div>
 
-      <div className="border-t py-4 text-center text-xs text-gray-400">
+      <div className="border-t border-gray-100 py-4 text-center text-xs text-gray-400">
         © {new Date().getFullYear()} Marketplace · Демо
       </div>
     </footer>

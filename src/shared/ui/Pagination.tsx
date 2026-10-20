@@ -5,61 +5,130 @@ interface Props {
   page: number;
   pages: number;
   onPageChange: (page: number) => void;
+  /** Сколько номеров показывать вокруг текущего */
+  siblings?: number;
+  className?: string;
 }
 
-export function Pagination({ page, pages, onPageChange }: Props) {
+/** Строит массив: [1, "…", 4, 5, 6, "…", 20] */
+function buildPages(
+  current: number,
+  total: number,
+  siblings: number,
+): (number | "ellipsis-l" | "ellipsis-r")[] {
+  const totalNumbers = siblings * 2 + 5; // first + last + current + 2*siblings
+  if (total <= totalNumbers) {
+    return Array.from({ length: total }, (_, i) => i + 1);
+  }
+
+  const leftSibling = Math.max(current - siblings, 1);
+  const rightSibling = Math.min(current + siblings, total);
+
+  const showLeftEllipsis = leftSibling > 2;
+  const showRightEllipsis = rightSibling < total - 1;
+
+  const range: (number | "ellipsis-l" | "ellipsis-r")[] = [];
+
+  if (!showLeftEllipsis && showRightEllipsis) {
+    const leftItemCount = 3 + 2 * siblings;
+    for (let i = 1; i <= leftItemCount; i++) range.push(i);
+    range.push("ellipsis-r");
+    range.push(total);
+  } else if (showLeftEllipsis && !showRightEllipsis) {
+    const rightItemCount = 3 + 2 * siblings;
+    range.push(1);
+    range.push("ellipsis-l");
+    for (let i = total - rightItemCount + 1; i <= total; i++) range.push(i);
+  } else {
+    range.push(1);
+    range.push("ellipsis-l");
+    for (let i = leftSibling; i <= rightSibling; i++) range.push(i);
+    range.push("ellipsis-r");
+    range.push(total);
+  }
+
+  return range;
+}
+
+export function Pagination({
+  page,
+  pages,
+  onPageChange,
+  siblings = 1,
+  className,
+}: Props) {
   if (pages <= 1) return null;
 
-  const visible = getPages(page, pages);
+  const items = buildPages(page, pages, siblings);
+  const canPrev = page > 1;
+  const canNext = page < pages;
 
   return (
-    <nav className="flex items-center justify-center gap-1">
+    <nav
+      aria-label="Пагинация"
+      className={cn("flex items-center justify-center gap-1", className)}
+    >
+      {/* Назад */}
       <button
-        onClick={() => onPageChange(page - 1)}
-        disabled={page <= 1}
-        className="h-9 w-9 flex items-center justify-center rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-        aria-label="Назад"
+        type="button"
+        onClick={() => canPrev && onPageChange(page - 1)}
+        disabled={!canPrev}
+        aria-label="Предыдущая страница"
+        className={cn(
+          "w-9 h-9 rounded-lg flex items-center justify-center transition",
+          "text-gray-600 hover:bg-gray-100",
+          "disabled:opacity-40 disabled:pointer-events-none",
+        )}
       >
         <ChevronLeft className="w-4 h-4" />
       </button>
 
-      {visible.map((p, i) =>
-        p === "..." ? (
-          <span key={`dot-${i}`} className="px-2 text-gray-400">
-            …
-          </span>
-        ) : (
+      {/* Номера */}
+      {items.map((item, idx) => {
+        if (typeof item === "string") {
+          return (
+            <span
+              key={`${item}-${idx}`}
+              className="w-9 h-9 flex items-center justify-center text-gray-400 select-none"
+              aria-hidden="true"
+            >
+              …
+            </span>
+          );
+        }
+        const active = item === page;
+        return (
           <button
-            key={p}
-            onClick={() => onPageChange(p as number)}
+            key={item}
+            type="button"
+            onClick={() => onPageChange(item)}
+            aria-current={active ? "page" : undefined}
             className={cn(
-              "h-9 min-w-9 px-3 rounded-lg border text-sm",
-              p === page
-                ? "bg-brand-600 text-white border-brand-600"
-                : "border-gray-300 hover:bg-gray-50",
+              "min-w-9 h-9 px-2 rounded-lg text-sm font-medium transition",
+              active
+                ? "bg-brand-600 text-white shadow-sm"
+                : "text-gray-700 hover:bg-gray-100",
             )}
           >
-            {p}
+            {item}
           </button>
-        ),
-      )}
+        );
+      })}
 
+      {/* Вперёд */}
       <button
-        onClick={() => onPageChange(page + 1)}
-        disabled={page >= pages}
-        className="h-9 w-9 flex items-center justify-center rounded-lg border border-gray-300 disabled:opacity-40 hover:bg-gray-50"
-        aria-label="Вперёд"
+        type="button"
+        onClick={() => canNext && onPageChange(page + 1)}
+        disabled={!canNext}
+        aria-label="Следующая страница"
+        className={cn(
+          "w-9 h-9 rounded-lg flex items-center justify-center transition",
+          "text-gray-600 hover:bg-gray-100",
+          "disabled:opacity-40 disabled:pointer-events-none",
+        )}
       >
         <ChevronRight className="w-4 h-4" />
       </button>
     </nav>
   );
-}
-
-function getPages(current: number, total: number): (number | "...")[] {
-  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
-  if (current <= 4) return [1, 2, 3, 4, 5, "...", total];
-  if (current >= total - 3)
-    return [1, "...", total - 4, total - 3, total - 2, total - 1, total];
-  return [1, "...", current - 1, current, current + 1, "...", total];
 }

@@ -1,6 +1,8 @@
-import { useForm } from "react-hook-form";
+import { useMemo } from "react";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNavigate } from "react-router-dom";
+import { Tag, FileText, Wallet, LayoutGrid } from "lucide-react";
 import {
   createListingSchema,
   type CreateListingFormValues,
@@ -21,9 +23,11 @@ export function ListingForm() {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<CreateListingFormValues>({
     resolver: zodResolver(createListingSchema),
+    mode: "onChange",
     defaultValues: {
       title: "",
       description: "",
@@ -32,6 +36,8 @@ export function ListingForm() {
       city: "",
     },
   });
+
+  const description = useWatch({ control, name: "description" }) ?? "";
 
   const onSubmit = (values: CreateListingFormValues) => {
     create.mutate(
@@ -46,61 +52,111 @@ export function ListingForm() {
     );
   };
 
-  // плоский список категорий (родители + дети)
-  const flatCategories =
-    categories?.flatMap((c) => [
-      { value: c.id, label: c.name },
-      ...c.children.map((child) => ({
-        value: child.id,
-        label: `— ${child.name}`,
-      })),
-    ]) ?? [];
+  const flatCategories = useMemo(
+    () =>
+      categories?.flatMap((c) => [
+        { value: c.id, label: c.name },
+        ...c.children.map((child) => ({
+          value: child.id,
+          label: `— ${child.name}`,
+        })),
+      ]) ?? [],
+    [categories],
+  );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-xl">
-      <Input
-        label="Заголовок"
-        placeholder="Например, iPhone 15 Pro"
-        {...register("title")}
-        error={errors.title?.message}
-      />
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-xl">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Новое объявление</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          Заполните информацию о товаре — это займёт минуту
+        </p>
+      </div>
 
-      <Textarea
-        label="Описание"
-        placeholder="Подробное описание"
-        rows={6}
-        {...register("description")}
-        error={errors.description?.message}
-      />
+      <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 pb-2 border-b border-gray-100">
+          <Tag className="w-4 h-4 text-brand-600" />
+          Основное
+        </div>
 
-      <Input
-        label="Цена, ₸"
-        type="number"
-        placeholder="0"
-        {...register("price")}
-        error={errors.price?.message}
-      />
+        <Input
+          label="Заголовок"
+          placeholder="Например, iPhone 15 Pro"
+          leftIcon={<Tag className="w-4 h-4" />}
+          required
+          {...register("title")}
+          error={errors.title?.message}
+        />
 
-      <Select
-        label="Категория"
-        placeholder={catLoading ? "Загрузка…" : "Выберите"}
-        disabled={catLoading}
-        options={flatCategories}
-        {...register("category_id")}
-        error={errors.category_id?.message}
-      />
+        <Textarea
+          label="Описание"
+          placeholder="Опишите состояние, характеристики, комплектность…"
+          rows={6}
+          maxLength={2000}
+          showCount
+          value={description}
+          hint="Чем подробнее — тем больше откликов"
+          {...register("description")}
+          error={errors.description?.message}
+        />
 
-      <Select
-        label="Город"
-        placeholder="Выберите"
-        options={CITIES.map((c) => ({ value: c.value, label: c.label }))}
-        {...register("city")}
-        error={errors.city?.message}
-      />
+        <Input
+          label="Цена, ₸"
+          type="number"
+          inputMode="numeric"
+          placeholder="0"
+          leftIcon={<Wallet className="w-4 h-4" />}
+          required
+          {...register("price")}
+          error={errors.price?.message}
+        />
+      </div>
 
-      <Button type="submit" loading={create.isPending} className="w-full">
-        Создать объявление
-      </Button>
+      <div className="space-y-4 rounded-xl border border-gray-200 bg-white p-5">
+        <div className="flex items-center gap-2 text-sm font-semibold text-gray-900 pb-2 border-b border-gray-100">
+          <LayoutGrid className="w-4 h-4 text-brand-600" />
+          Местоположение
+        </div>
+
+        <Select
+          label="Категория"
+          placeholder={catLoading ? "Загрузка…" : "Выберите"}
+          disabled={catLoading}
+          required
+          options={flatCategories}
+          {...register("category_id")}
+          error={errors.category_id?.message}
+        />
+
+        <Select
+          label="Город"
+          placeholder="Выберите"
+          required
+          options={CITIES.map((c) => ({ value: c.value, label: c.label }))}
+          {...register("city")}
+          error={errors.city?.message}
+        />
+      </div>
+
+      <div className="flex flex-col-reverse sm:flex-row gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate(-1)}
+          className="sm:flex-1"
+        >
+          Отмена
+        </Button>
+        <Button
+          type="submit"
+          loading={create.isPending}
+          loadingText="Публикуем…"
+          className="sm:flex-[2]"
+        >
+          <FileText className="w-4 h-4" />
+          Создать объявление
+        </Button>
+      </div>
     </form>
   );
 }
